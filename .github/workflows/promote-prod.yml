@@ -6,9 +6,9 @@ on:
       ref:
         required: true
         type: string
-    secrets:
-      NEXUS_TOKEN:
-        required: true
+    # secrets:
+    #   NEXUS_TOKEN:
+    #     required: true
 
 jobs:
   promote:
