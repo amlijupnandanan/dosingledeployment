@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "Environment: ${{ github.event.inputs.ENVIRONMENT }}"
           echo "Service: ${{ github.event.inputs.SERVICE }}"
-  
+
   deploy:
     needs: setup
     runs-on: ubuntu-latest
@@ -40,16 +40,32 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      
+
+      - name: Approval before ${{ matrix.stage }} deployment
+        uses: hmarr/auto-approve-action@v3
+        if: github.event.inputs.ENVIRONMENT == matrix.stage || (github.event.inputs.ENVIRONMENT == 'ppe' && contains(fromJson('["ppe", "promote-prod", "prod"]'), matrix.stage))
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Load Deployment Script
+        if: github.event.inputs.ENVIRONMENT == matrix.stage || (github.event.inputs.ENVIRONMENT == 'ppe' && contains(fromJson('["ppe", "promote-prod", "prod"]'), matrix.stage))
         run: |
           chmod +x scripts/deploy.sh
           scripts/deploy.sh ${{ matrix.stage }}
 
       - name: Execute Deployment for ${{ matrix.stage }}
+        if: github.event.inputs.ENVIRONMENT == matrix.stage || (github.event.inputs.ENVIRONMENT == 'ppe' && contains(fromJson('["ppe", "promote-prod", "prod"]'), matrix.stage))
         run: |
           echo "Deploying to ${{ matrix.stage }}"
           ./scripts/deploy.sh ${{ matrix.stage }}
+
+      - name: Skip Next Stage
+        if: success()
+        run: echo "Skipping next stage if selected"
+
+      - name: Skip All Subsequent Stages
+        if: success()
+        run: echo "Skipping all subsequent stages if selected"
 
   notify:
     needs: deploy
