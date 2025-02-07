@@ -1,0 +1,25 @@
+name: Promote Artifacts to Nexus
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+    secrets:
+      NEXUS_TOKEN:
+        required: true
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Promote Artifacts to Nexus
+        run: |
+          echo "Promoting artifacts to Nexus..."
+          ./scripts/promote.sh

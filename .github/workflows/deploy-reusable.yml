@@ -1,0 +1,39 @@
+name: Reusable Deployment Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      ref:
+        required: true
+        type: string
+    secrets:
+      AZURE_CREDENTIALS:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Load Environment Variables
+        run: cat env/${{ inputs.environment }}.env >> $GITHUB_ENV
+
+      - name: Deploy Application
+        run: |
+          echo "Deploying to ${{ inputs.environment }}..."
+          ./scripts/deploy.sh ${{ inputs.environment }}
+
+      - name: Ask for Next Stage Approval
+        if: ${{ inputs.environment != 'prod' && inputs.environment != 'promote-prod' }}
+        run: |
+          echo "Do you want to continue to the next stage?"
+          echo "If yes, approve the next job."
