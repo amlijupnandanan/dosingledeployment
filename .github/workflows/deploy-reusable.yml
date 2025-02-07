@@ -24,6 +24,10 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
+
+      - name: Set Executable Permissions
+        run: chmod +x ./scripts/deploy.sh
+
       - name: Deploy Application
         run: |
           echo "Deploying to ${{ inputs.environment }}..."
