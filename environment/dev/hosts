@@ -1,0 +1,13 @@
+[all:vars]
+env=dev
+
+
+[do-intervention-api]
+server1
+server2
+server3
+
+[do-order-api]
+server4
+server5
+server6

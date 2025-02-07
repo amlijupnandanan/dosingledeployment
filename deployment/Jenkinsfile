@@ -1,0 +1,183 @@
+import groovy.transform.Field
+
+@Field
+def testMark = 'false'
+
+@Field
+def envVar = 'false'
+
+@Field
+def isProdStageSkipped = true
+def isProdSOOStageSkipped = true
+
+properties([
+    parameters([
+        [$class: 'ChoiceParameter', choiceType: 'PT_SINGLE_SELECT', name: 'ENVIRONMENT', description: 'Choose the environment', filterLength: 1, filterable: true,
+            script: [
+                $class: 'GroovyScript',
+                fallbackScript: [classpath: [], sandbox: true, script: 'return [\'Could not get Env\']'],
+                script: [classpath: [], sandbox: true, script: 'return ["dev", "stg", "perf", "ppe", "promote-prod","prod"]']
+            ]
+        ],
+        [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', name: 'SERVICE', description: 'Select Service (Required only for Dev environment)', filterLength: 1, filterable: true, referencedParameters: 'ENVIRONMENT',
+            script: [
+                $class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: true, script: 'return [\'Could not get Service\']'],
+                script: [classpath: [], sandbox: true, script: '''
+                    if (ENVIRONMENT == 'dev') {
+                        return ["service1", "service2", "service3", "service4"]
+                    } else {
+                        return ["NA"]
+                    }
+                ''']
+            ]
+        ],
+         
+    ])
+])
+
+pipeline {
+    agent any
+
+    //  environment {
+    //     isSkipAll = 'false' // Initialize to false
+    // }
+
+                   
+
+    stages {
+        stage('Setup') {
+            steps {
+                script {
+
+                     if (!binding.hasVariable('SKIP_ALL')) {
+                        SKIP_ALL = false
+                    }
+                    // Load utility scripts
+                    utils = load 'vars/utils.groovy'
+                    echo "ENVIRONMENT: ${params.ENVIRONMENT}"
+                    echo "SERVICE: ${params.SERVICE}"
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Dev Deployment') {
+            when { expression { return utils.shouldExecuteStage('dev', params.ENVIRONMENT)  } }
+            steps {
+                script {
+                    if(envVar != 'true' )
+                    {
+                   
+                        echo "Loading release.groovy"
+                        def deploy = load 'vars/release.groovy'
+                        envVar = deploy.changesTo('dev',envVar)
+                    }
+                   
+                }
+            }
+        }
+
+        stage('Stage Deployment') {
+            when { expression { return utils.shouldExecuteStage('stg', params.ENVIRONMENT)  } }
+            steps {
+                script {
+                    echo "Checking condition for stg Deployment"
+                    echo "environmnt variable value $envVar"
+                    if(envVar != 'true')
+                    {
+                    echo "Loading release.groovy for stg"
+                    def deploy = load 'vars/release.groovy'
+                    envVar = deploy.changesTo('stg',envVar)
+                    echo "environmnt variable value $envVar after stg"
+                    }
+                }
+            }
+        }
+
+        stage('Perf Deployment') {
+            when { expression { return utils.shouldExecuteStage('perf', params.ENVIRONMENT)  } }
+            steps {
+                script {
+                    echo "Checking condition for perf Deployment"
+                    echo "environmnt variable value $envVar"
+                    if(envVar != 'true')
+                    {
+                    echo "Loading release.groovy for perf"
+                    def deploy = load 'vars/release.groovy'
+                    envVar = deploy.changesTo('perf',envVar)
+                    echo "environmnt variable value $envVar after perf"
+                    }
+                }
+            }
+        }
+
+        stage('PPE Deployment') {
+            when { expression { return utils.shouldExecuteStage('ppe', params.ENVIRONMENT)  } }
+            steps {
+                script {
+                    echo "Checking condition for ppe Deployment"
+                    echo "environmnt variable value $envVar"
+                    if(envVar != 'true')
+                    {
+                    echo "Loading release.groovy for ppe"
+                    def deploy = load 'vars/release.groovy'
+                    envVar = deploy.changesTo('ppe',envVar)
+                    echo "environmnt variable value $envVar after ppe"
+                    }
+                }
+            }
+        }
+
+        
+
+         stage('Promote-PROD Deployment') {
+            when { expression { return utils.shouldExecuteStage('promote-prod', params.ENVIRONMENT)  } }
+            steps {
+                script {
+                    echo "environmnt variable value $envVar in promote-prod"
+                    if(envVar != 'true')
+                    {
+                    echo "check enironment var $envVar "
+                    echo "Loading release.groovy for Promoteprod"
+                    def deploy = load 'vars/release.groovy'
+                    envVar = deploy.promotePRODRelease()
+                    }
+                }
+            }
+        }
+  
+        stage('Prod Deployment') {
+            when { expression { return utils.shouldExecuteStage('prod', params.ENVIRONMENT)  } }
+            steps {
+                script {
+                    echo "environmnt variable value $envVar in prod"
+                    if(envVar != 'true')
+                    {
+                    echo "Loading release.groovy for Prod"
+                    def deploy = load 'vars/release.groovy'
+                    isProdSOOStageSkipped = deploy.changesTo('prod',envVar)
+                    }
+                }
+            }
+        }
+
+
+    }
+
+    post {
+        success {
+            script {
+                if(envVar != 'true')
+                    {
+                echo "All stage success"
+                    }
+                    else { echo "Some stages are skipped"}
+            }
+        }
+    }
+}

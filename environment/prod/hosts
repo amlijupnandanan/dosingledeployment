@@ -1,0 +1,13 @@
+[all:vars]
+env=prod
+
+
+[do-intervention-api]
+prod-server11
+prod-server21
+prod-server31
+
+[do-order-api]
+prod-server41
+prod-server51
+prod-server61
