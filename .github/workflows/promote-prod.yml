@@ -6,9 +6,10 @@ on:
       ref:
         required: true
         type: string
-    # secrets:
-    #   NEXUS_TOKEN:
-    #     required: true
+    outputs:
+      skip_next:
+        description: "Indicates if the next stage should be skipped"
+        value: ${{ jobs.promote.outputs.skip_next }}
 
 jobs:
   promote:
@@ -23,3 +24,12 @@ jobs:
         run: |
           echo "Promoting artifacts to Nexus..."
           ./scripts/promote.sh
+
+      - name: Set Skip Next Stage Variable
+        id: skip-check
+        run: |
+          if [ "${{ github.event.inputs.skip_next_stage }}" == "yes" ]; then
+            echo "skip_next=yes" >> $GITHUB_ENV
+          else
+            echo "skip_next=no" >> $GITHUB_ENV
+          fi

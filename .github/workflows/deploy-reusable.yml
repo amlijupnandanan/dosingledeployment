@@ -9,9 +9,10 @@ on:
       ref:
         required: true
         type: string
-    # secrets:
-    #   AZURE_CREDENTIALS:
-    #     required: true
+    outputs:
+      skip_next:
+        description: "Indicates if the next stage should be skipped"
+        value: ${{ jobs.deploy.outputs.skip_next }}
 
 jobs:
   deploy:
@@ -23,7 +24,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
-
 
       - name: Set Executable Permissions
         run: chmod +x ./scripts/deploy.sh
@@ -38,3 +38,13 @@ jobs:
         run: |
           echo "Deployment completed for ${{ inputs.environment }}."
           echo "Approve the next job to continue or skip."
+
+      - name: Set Skip Next Stage Variable
+        if: ${{ inputs.environment != 'prod' && inputs.environment != 'promote-prod' }}
+        id: skip-check
+        run: |
+          if [ "${{ github.event.inputs.skip_next_stage }}" == "yes" ]; then
+            echo "skip_next=yes" >> $GITHUB_ENV
+          else
+            echo "skip_next=no" >> $GITHUB_ENV
+          fi
