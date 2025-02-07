@@ -53,7 +53,7 @@ pipeline {
                         SKIP_ALL = false
                     }
                     // Load utility scripts
-                    utils = load 'vars/utils.groovy'
+                    utils = load 'utils.groovy'
                     echo "ENVIRONMENT: ${params.ENVIRONMENT}"
                     echo "SERVICE: ${params.SERVICE}"
                 }
