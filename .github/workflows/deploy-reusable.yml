@@ -9,9 +9,9 @@ on:
       ref:
         required: true
         type: string
-    secrets:
-      AZURE_CREDENTIALS:
-        required: true
+    # secrets:
+    #   AZURE_CREDENTIALS:
+    #     required: true
 
 jobs:
   deploy:
