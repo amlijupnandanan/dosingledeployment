@@ -8,7 +8,7 @@ def serviceReleaseVersions = ['do-intervention':'', 'do-order':'']
 
 
 @Field
-def stagePriorities = [dev:1, stg:2, perf:3, ppe: 4, promote-prod:5, prod:9]
+def stagePriorities = [dev:1, stg:2, perf:3, ppe:4, promote-prod:5, prod:9]
 
 @Field
 def envParameters = [dev:'', stg:'', perf:'', ppe:'', prod:'']
