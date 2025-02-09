@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   deploy-dev:
@@ -30,8 +31,6 @@ jobs:
     secrets: inherit
 
   deploy-perf:
-    if: github.event.inputs.run-perf == 'true'
-    needs: [functional-tests, promote-qa]
     uses: ./.github/workflows/reusable-approval.yml
     with:
       environment: perf
