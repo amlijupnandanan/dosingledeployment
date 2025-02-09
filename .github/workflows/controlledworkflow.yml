@@ -29,12 +29,12 @@ jobs:
         id: set-stages
         run: |
           case "${{ inputs.environment }}" in
-            dev)   echo "stages=dev,stg,perf,ppe,promote-prod,prod" >> $GITHUB_OUTPUT ;;
-            stg)   echo "stages=stg,perf,ppe,promote-prod,prod" >> $GITHUB_OUTPUT ;;
-            perf)  echo "stages=perf,ppe,promote-prod,prod" >> $GITHUB_OUTPUT ;;
-            ppe)   echo "stages=ppe,promote-prod,prod" >> $GITHUB_OUTPUT ;;
-            promote-prod) echo "stages=promote-prod,prod" >> $GITHUB_OUTPUT ;;
-            prod)  echo "stages=prod" >> $GITHUB_OUTPUT ;;
+            dev)   echo "stages=[\"dev\",\"stg\",\"perf\",\"ppe\",\"promote-prod\",\"prod\"]" >> $GITHUB_OUTPUT ;;
+            stg)   echo "stages=[\"stg\",\"perf\",\"ppe\",\"promote-prod\",\"prod\"]" >> $GITHUB_OUTPUT ;;
+            perf)  echo "stages=[\"perf\",\"ppe\",\"promote-prod\",\"prod\"]" >> $GITHUB_OUTPUT ;;
+            ppe)   echo "stages=[\"ppe\",\"promote-prod\",\"prod\"]" >> $GITHUB_OUTPUT ;;
+            promote-prod) echo "stages=[\"promote-prod\",\"prod\"]" >> $GITHUB_OUTPUT ;;
+            prod)  echo "stages=[\"prod\"]" >> $GITHUB_OUTPUT ;;
           esac
 
   deploy-stages:
@@ -45,7 +45,7 @@ jobs:
         stage: ${{ fromJson(needs.control-deployment.outputs.stages) }}
     environment: 
       name: ${{ matrix.stage }}
-      url: "https://deployment-url-placeholder/${{ matrix.stage }}"
+      url: "https://${{ matrix.stage }}.example.com"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -64,10 +64,3 @@ jobs:
         if: ${{ matrix.stage != 'prod' }}
         run: echo "SKIP_NEXT=${{ github.event.inputs.skip_next || 'no' }}" >> $GITHUB_ENV
 
-      - name: Check skip condition
-        id: skip-condition
-        run: |
-          echo "SKIP_NEXT=${{ env.SKIP_NEXT }}"
-          echo "skip_next=$([[ '${{ env.SKIP_NEXT }}' == 'yes' ]] && echo true || echo false)" >> $GITHUB_ENV
-
-    continue-on-error: ${{ needs.deploy-stages.outputs.skip_next == 'false' }}
