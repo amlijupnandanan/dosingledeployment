@@ -1,0 +1,67 @@
+name: SIngle file deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target Environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - stg
+          - perf
+          - ppe
+          - promote-prod
+          - prod
+      ref:
+        description: 'Branch or Tag'
+        required: true
+        default: 'main'
+
+jobs:
+  control-deployment:
+    runs-on: ubuntu-latest
+    outputs:
+      stages: ${{ steps.set-stages.outputs.stages }}
+    steps:
+      - name: Determine deployment sequence
+        id: set-stages
+        run: |
+          case "${{ inputs.environment }}" in
+            dev)   echo "stages=dev,stg,perf,ppe,promote-prod,prod" >> $GITHUB_OUTPUT ;;
+            stg)   echo "stages=stg,perf,ppe,promote-prod,prod" >> $GITHUB_OUTPUT ;;
+            perf)  echo "stages=perf,ppe,promote-prod,prod" >> $GITHUB_OUTPUT ;;
+            ppe)   echo "stages=ppe,promote-prod,prod" >> $GITHUB_OUTPUT ;;
+            promote-prod) echo "stages=promote-prod,prod" >> $GITHUB_OUTPUT ;;
+            prod)  echo "stages=prod" >> $GITHUB_OUTPUT ;;
+          esac
+
+  deploy-stages:
+    needs: control-deployment
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        stage: ${{ fromJson(needs.control-deployment.outputs.stages) }}
+    environment: 
+      name: ${{ matrix.stage }}
+      url: 'https://your-deployment-url/${{ matrix.stage }}'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: Deploy to ${{ matrix.stage }}
+        if: matrix.stage != 'promote-prod'
+        run: ./scripts/deploy.sh ${{ matrix.stage }}
+
+      - name: Promote artifacts
+        if: matrix.stage == 'promote-prod'
+        run: ./scripts/promote.sh
+
+      - name: Set skip status
+        if: ${{ matrix.stage != 'prod' }}
+        run: echo "SKIP_NEXT=${{ github.event.inputs.skip_next || 'no' }}" >> $GITHUB_ENV
+
+    continue-on-error: ${{ matrix.stage != 'prod' && env.SKIP_NEXT == 'yes' }}

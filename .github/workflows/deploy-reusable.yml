@@ -9,10 +9,6 @@ on:
       ref:
         required: true
         type: string
-    outputs:
-      skip_next:
-        description: "Indicates if the next stage should be skipped"
-        value: ${{ jobs.deploy.outputs.skip_next }}
 
 jobs:
   deploy:
@@ -29,22 +25,8 @@ jobs:
         run: chmod +x ./scripts/deploy.sh
 
       - name: Deploy Application
-        run: |
-          echo "Deploying to ${{ inputs.environment }}..."
-          ./scripts/deploy.sh ${{ inputs.environment }}
+        run: ./scripts/deploy.sh ${{ inputs.environment }}
 
-      - name: Ask for Next Stage Approval
-        if: ${{ inputs.environment != 'prod' && inputs.environment != 'promote-prod' }}
-        run: |
-          echo "Deployment completed for ${{ inputs.environment }}."
-          echo "Approve the next job to continue or skip."
-
-      - name: Set Skip Next Stage Variable
-        if: ${{ inputs.environment != 'prod' && inputs.environment != 'promote-prod' }}
-        id: skip-check
-        run: |
-          if [ "${{ github.event.inputs.skip_next_stage }}" == "yes" ]; then
-            echo "skip_next=yes" >> $GITHUB_ENV
-          else
-            echo "skip_next=no" >> $GITHUB_ENV
-          fi
+      - name: Ask for Approval or Skip Next Stage
+        if: ${{ inputs.environment != 'prod' }}
+        run: echo "Deployment completed for ${{ inputs.environment }}. Approve next stage or skip."
