@@ -18,14 +18,6 @@ on:
         description: 'Branch or Tag'
         required: true
         default: 'main'
-      next_stage:
-        description: 'Action after this stage'
-        required: true
-        type: choice
-        options:
-          - continue
-          - skip
-          - stop
 
 jobs:
   deploy:
@@ -33,4 +25,3 @@ jobs:
     with:
       environment: ${{ github.event.inputs.environment }}
       ref: ${{ github.event.inputs.ref }}
-      next_stage: ${{ github.event.inputs.next_stage }}
