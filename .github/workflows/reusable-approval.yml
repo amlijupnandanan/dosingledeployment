@@ -10,12 +10,11 @@ on:
 jobs:
   approval:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment }}  # This enables manual approval in GitHub UI
+
     steps:
-      - name: Wait for Approval
-        uses: hmarr/auto-approve-action@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Wait for Manual Approval
+        run: echo "Manual approval required for ${{ inputs.environment }}"
 
       - name: Deploy to ${{ inputs.environment }}
         run: echo "Deploying to ${{ inputs.environment }}"
