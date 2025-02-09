@@ -10,9 +10,9 @@ on:
         required: true
         type: string
     outputs:
-      skip_next:
-        description: "Indicates if the next stage should be skipped"
-        value: ${{ jobs.deploy.outputs.skip_next }}
+      next_stage:
+        description: "Next stage to execute"
+        value: ${{ jobs.deploy.outputs.next_stage }}
 
 jobs:
   deploy:
@@ -31,27 +31,31 @@ jobs:
       - name: Deploy Application
         run: ./scripts/deploy.sh ${{ inputs.environment }}
 
-      - name: Ask for Next Stage Approval or Skip
+      - name: Ask for Next Action
         if: ${{ inputs.environment != 'prod' }}
-        id: approval
-        run: |
-          echo "Deployment completed for ${{ inputs.environment }}."
-          echo "Choose one option: "
-          echo "1️⃣ Approve Next Stage"
-          echo "2️⃣ Skip Next Stage"
-          echo "3️⃣ Skip All Remaining Stages"
+        uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set Skip Next Stage Variable
-        if: ${{ inputs.environment != 'prod' }}
-        id: skip-check
+      - name: Capture User Decision
+        id: decision
         run: |
-          if [ "${{ github.event.inputs.skip_next_stage }}" == "yes" ]; then
-            echo "skip_next=yes" >> $GITHUB_ENV
+          echo "Choose your next step:"
+          echo "1️⃣ Continue to next stage"
+          echo "2️⃣ Skip next stage"
+          echo "3️⃣ Skip all remaining stages"
+          echo "Enter choice (1,2,3):"
+          read choice
+          echo "User chose option: $choice"
+
+          if [ "$choice" == "2" ]; then
+            echo "next_stage=skip" >> $GITHUB_ENV
+          elif [ "$choice" == "3" ]; then
+            echo "next_stage=stop" >> $GITHUB_ENV
           else
-            echo "skip_next=no" >> $GITHUB_ENV
+            echo "next_stage=continue" >> $GITHUB_ENV
           fi
 
-      - name: Complete Pipeline if Skipped All Stages
-        if: ${{ env.skip_next == 'yes' }}
-        run: |
-          echo "Pipeline completed successfully. No further stages will run."
+      - name: Set Output
+        id: output
+        run: echo "next_stage=${{ env.next_stage }}" >> $GITHUB_OUTPUT

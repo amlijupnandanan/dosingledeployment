@@ -6,11 +6,14 @@ on:
       ref:
         required: true
         type: string
+    outputs:
+      next_stage:
+        description: "Next stage to execute"
+        value: ${{ jobs.promote.outputs.next_stage }}
 
 jobs:
   promote:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -19,6 +22,3 @@ jobs:
 
       - name: Promote Artifacts to Nexus
         run: ./scripts/promote.sh
-
-      - name: Ask for Approval for Production Deployment
-        run: echo "Promotion complete. Approve Production deployment."
