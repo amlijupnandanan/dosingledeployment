@@ -1,4 +1,4 @@
-name: SIngle file deployment
+name: Single file deployment
 
 on:
   workflow_dispatch:
@@ -45,7 +45,7 @@ jobs:
         stage: ${{ fromJson(needs.control-deployment.outputs.stages) }}
     environment: 
       name: ${{ matrix.stage }}
-      url: 'https://your-deployment-url/${{ matrix.stage }}'
+      url: "https://deployment-url-placeholder/${{ matrix.stage }}"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -64,4 +64,10 @@ jobs:
         if: ${{ matrix.stage != 'prod' }}
         run: echo "SKIP_NEXT=${{ github.event.inputs.skip_next || 'no' }}" >> $GITHUB_ENV
 
-    continue-on-error: ${{ matrix.stage != 'prod' && env.SKIP_NEXT == 'yes' }}
+      - name: Check skip condition
+        id: skip-condition
+        run: |
+          echo "SKIP_NEXT=${{ env.SKIP_NEXT }}"
+          echo "skip_next=$([[ '${{ env.SKIP_NEXT }}' == 'yes' ]] && echo true || echo false)" >> $GITHUB_ENV
+
+    continue-on-error: ${{ needs.deploy-stages.outputs.skip_next == 'false' }}
