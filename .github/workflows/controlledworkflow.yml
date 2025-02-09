@@ -1,4 +1,4 @@
-name: Single file deployment
+name: Controlled Deployment with Approval Timer
 
 on:
   workflow_dispatch:
@@ -52,18 +52,30 @@ jobs:
         with:
           ref: ${{ github.event.inputs.ref }}
 
-      - name: Set Executable Permissions
-        run: chmod +x ./scripts/deploy.sh
+      - name: Wait for approval (1 minute)
+        id: approval
+        run: |
+          echo "Waiting for approval... You have 1 minute to approve."
+          timeout 60s bash -c "until [ -f approved.flag ]; do sleep 1; done"
+        
+      - name: Check if approval was made
+        id: check-approval
+        run: |
+          if [ ! -f approved.flag ]; then
+            echo "Approval timed out!"
+            exit 1
+          fi
 
       - name: Deploy to ${{ matrix.stage }}
-        if: matrix.stage != 'promote-prod'
+        if: matrix.stage != 'promote-prod' && steps.check-approval.outcome == 'success'
         run: ./scripts/deploy.sh ${{ matrix.stage }}
 
       - name: Promote artifacts
-        if: matrix.stage == 'promote-prod'
+        if: matrix.stage == 'promote-prod' && steps.check-approval.outcome == 'success'
         run: ./scripts/promote.sh
 
       - name: Set skip status
         if: ${{ matrix.stage != 'prod' }}
         run: echo "SKIP_NEXT=${{ github.event.inputs.skip_next || 'no' }}" >> $GITHUB_ENV
 
+    continue-on-error: ${{ needs.deploy-stages.outputs.skip_next == 'false' }}
