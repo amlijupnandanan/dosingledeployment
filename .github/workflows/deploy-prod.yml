@@ -1,0 +1,19 @@
+name: Prod Deployment Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or Tag'
+        required: true
+        default: 'main'
+
+jobs:
+  prod:
+    runs-on: ubuntu-latest  # ✅ Added runs-on
+    steps:
+      - name: Deploy to Production
+        uses: ./.github/workflows/deploy-reusable.yml  # ✅ Moved inside 'steps'
+        with:
+          environment: prod
+          ref: ${{ github.event.inputs.ref }}

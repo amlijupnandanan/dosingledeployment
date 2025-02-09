@@ -9,10 +9,6 @@ on:
       ref:
         required: true
         type: string
-    outputs:
-      next_stage:
-        description: "Next stage to execute"
-        value: ${{ jobs.deploy.outputs.next_stage }}
 
 jobs:
   deploy:
@@ -29,9 +25,6 @@ jobs:
         run: chmod +x ./scripts/deploy.sh
 
       - name: Deploy Application
-        run: ./scripts/deploy.sh ${{ inputs.environment }}
-
-      - name: Set Next Stage Decision
-        if: ${{ inputs.environment != 'prod' }}
         run: |
-          echo "next_stage=${{ github.event.inputs.next_stage }}" >> $GITHUB_ENV
+          echo "Deploying to ${{ inputs.environment }}..."
+          ./scripts/deploy.sh ${{ inputs.environment }}
