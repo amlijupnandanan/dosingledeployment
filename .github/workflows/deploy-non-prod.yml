@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Dev
-        uses:  ./.github/workflows/deploy-reusable.yml
+        uses: ./.github/workflows/deploy-reusable1.yml
         with:
           environment: dev
           ref: ${{ github.event.inputs.ref }}
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Staging
-        uses: ./.github/workflows/deploy-reusable.yml
+        uses: ./.github/workflows/deploy-reusable1.yml
         with:
           environment: stg
           ref: ${{ github.event.inputs.ref }}
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Performance
-        uses: ./.github/workflows/deploy-reusable.yml
+        uses: ./.github/workflows/deploy-reusable1.yml
         with:
           environment: perf
           ref: ${{ github.event.inputs.ref }}
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Pre-Prod
-        uses: ./.github/workflows/deploy-reusable.yml
+        uses: ./.github/workflows/deploy-reusable1.yml
         with:
           environment: ppe
           ref: ${{ github.event.inputs.ref }}
