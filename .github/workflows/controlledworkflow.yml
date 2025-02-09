@@ -64,4 +64,4 @@ jobs:
         if: ${{ matrix.stage != 'prod' }}
         run: echo "SKIP_NEXT=${{ github.event.inputs.skip_next || 'no' }}" >> $GITHUB_ENV
 
-    continue-on-error: ${{ matrix.stage != 'prod' && env.SKIP_NEXT == 'yes' }}
+    # continue-on-error: ${{ matrix.stage != 'prod' && env.SKIP_NEXT == 'yes' }}
