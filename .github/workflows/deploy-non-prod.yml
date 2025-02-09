@@ -21,7 +21,7 @@ on:
 jobs:
   dev:
     if: ${{ github.event.inputs.environment == 'dev' }}
-    runs-on: ubuntu-latest  # ✅ Added 'runs-on'
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy Dev
         uses: ./.github/workflows/deploy-reusable.yml
@@ -32,7 +32,7 @@ jobs:
   stg:
     if: ${{ github.event.inputs.environment == 'stg' || needs.dev.result == 'success' }}
     needs: [dev]
-    runs-on: ubuntu-latest  # ✅ Added 'runs-on'
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy Staging
         uses: ./.github/workflows/deploy-reusable.yml
@@ -43,7 +43,7 @@ jobs:
   perf:
     if: ${{ github.event.inputs.environment == 'perf' || needs.stg.result == 'success' }}
     needs: [stg]
-    runs-on: ubuntu-latest  # ✅ Added 'runs-on'
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy Performance
         uses: ./.github/workflows/deploy-reusable.yml
@@ -54,7 +54,7 @@ jobs:
   ppe:
     if: ${{ github.event.inputs.environment == 'ppe' || needs.perf.result == 'success' }}
     needs: [perf]
-    runs-on: ubuntu-latest  # ✅ Added 'runs-on'
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy Pre-Prod
         uses: ./.github/workflows/deploy-reusable.yml
@@ -65,7 +65,7 @@ jobs:
   promote-prod:
     if: ${{ github.event.inputs.environment == 'promote-prod' || needs.ppe.result == 'success' }}
     needs: [ppe]
-    runs-on: ubuntu-latest  # ✅ Added 'runs-on'
+    runs-on: ubuntu-latest
     steps:
       - name: Promote Artifacts to Prod
         uses: ./.github/workflows/promote-prod.yml
