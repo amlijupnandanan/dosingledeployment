@@ -1,0 +1,11 @@
+name: Promote to QA Nexus
+
+on:
+  workflow_call:
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Promote JAR to QA Nexus
+        run: echo "Promoting JAR file to QA Nexus"

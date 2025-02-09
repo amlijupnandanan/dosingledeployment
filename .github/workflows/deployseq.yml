@@ -1,0 +1,52 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-dev:
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      environment: dev
+    secrets: inherit
+
+  functional-tests:
+    needs: deploy-dev
+    uses: ./.github/workflows/functional-tests.yml
+    secrets: inherit
+
+  promote-qa:
+    needs: deploy-dev
+    uses: ./.github/workflows/promote-qa.yml
+    secrets: inherit
+
+  deploy-stg:
+    needs: [functional-tests, promote-qa]
+    uses: ./.github/workflows/reusable-approval.yml
+    with:
+      environment: stg
+    secrets: inherit
+
+  deploy-perf:
+    if: github.event.inputs.run-perf == 'true'
+    needs: [functional-tests, promote-qa]
+    uses: ./.github/workflows/reusable-approval.yml
+    with:
+      environment: perf
+    secrets: inherit
+
+  deploy-ppe:
+    needs: [deploy-stg, deploy-perf]
+    uses: ./.github/workflows/reusable-approval.yml
+    with:
+      environment: ppe
+    secrets: inherit
+
+  deploy-prod:
+    needs: deploy-ppe
+    uses: ./.github/workflows/reusable-approval.yml
+    with:
+      environment: prod
+    secrets: inherit
