@@ -31,26 +31,7 @@ jobs:
       - name: Deploy Application
         run: ./scripts/deploy.sh ${{ inputs.environment }}
 
-      - name: Ask for Next Step
+      - name: Set Next Stage Decision
         if: ${{ inputs.environment != 'prod' }}
         run: |
-          echo "### Deployment completed for ${{ inputs.environment }} 🚀"
-          echo "What do you want to do next?"
-          echo "1️⃣ Continue to next stage"
-          echo "2️⃣ Skip next stage"
-          echo "3️⃣ Skip all remaining stages"
-          echo "Please enter a number (1,2,3):"
-          read choice
-          echo "User chose option: $choice"
-
-          if [ "$choice" == "2" ]; then
-            echo "next_stage=skip" >> $GITHUB_ENV
-          elif [ "$choice" == "3" ]; then
-            echo "next_stage=stop" >> $GITHUB_ENV
-          else
-            echo "next_stage=continue" >> $GITHUB_ENV
-          fi
-
-      - name: Set Output
-        id: output
-        run: echo "next_stage=${{ env.next_stage }}" >> $GITHUB_OUTPUT
+          echo "next_stage=${{ github.event.inputs.next_stage }}" >> $GITHUB_ENV
