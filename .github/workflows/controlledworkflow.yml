@@ -52,6 +52,9 @@ jobs:
         with:
           ref: ${{ github.event.inputs.ref }}
 
+      - name: Set Executable Permissions
+        run: chmod +x ./scripts/deploy.sh
+
       - name: Deploy to ${{ matrix.stage }}
         if: matrix.stage != 'promote-prod'
         run: ./scripts/deploy.sh ${{ matrix.stage }}
