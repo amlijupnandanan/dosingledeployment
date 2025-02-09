@@ -31,20 +31,15 @@ jobs:
       - name: Deploy Application
         run: ./scripts/deploy.sh ${{ inputs.environment }}
 
-      - name: Ask for Next Action
+      - name: Ask for Next Step
         if: ${{ inputs.environment != 'prod' }}
-        uses: hmarr/auto-approve-action@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Capture User Decision
-        id: decision
         run: |
-          echo "Choose your next step:"
+          echo "### Deployment completed for ${{ inputs.environment }} 🚀"
+          echo "What do you want to do next?"
           echo "1️⃣ Continue to next stage"
           echo "2️⃣ Skip next stage"
           echo "3️⃣ Skip all remaining stages"
-          echo "Enter choice (1,2,3):"
+          echo "Please enter a number (1,2,3):"
           read choice
           echo "User chose option: $choice"
 
