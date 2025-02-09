@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Dev
-        uses: ./.github/workflows/deploy-reusable.yml
+        uses:  ./.github/workflows/deploy-reusable.yml
         with:
           environment: dev
           ref: ${{ github.event.inputs.ref }}
