@@ -9,6 +9,10 @@ on:
       ref:
         required: true
         type: string
+    outputs:
+      skip_next:
+        description: "Indicates if the next stage should be skipped"
+        value: ${{ jobs.deploy.outputs.skip_next }}
 
 jobs:
   deploy:
@@ -27,6 +31,27 @@ jobs:
       - name: Deploy Application
         run: ./scripts/deploy.sh ${{ inputs.environment }}
 
-      - name: Ask for Approval or Skip Next Stage
+      - name: Ask for Next Stage Approval or Skip
         if: ${{ inputs.environment != 'prod' }}
-        run: echo "Deployment completed for ${{ inputs.environment }}. Approve next stage or skip."
+        id: approval
+        run: |
+          echo "Deployment completed for ${{ inputs.environment }}."
+          echo "Choose one option: "
+          echo "1️⃣ Approve Next Stage"
+          echo "2️⃣ Skip Next Stage"
+          echo "3️⃣ Skip All Remaining Stages"
+
+      - name: Set Skip Next Stage Variable
+        if: ${{ inputs.environment != 'prod' }}
+        id: skip-check
+        run: |
+          if [ "${{ github.event.inputs.skip_next_stage }}" == "yes" ]; then
+            echo "skip_next=yes" >> $GITHUB_ENV
+          else
+            echo "skip_next=no" >> $GITHUB_ENV
+          fi
+
+      - name: Complete Pipeline if Skipped All Stages
+        if: ${{ env.skip_next == 'yes' }}
+        run: |
+          echo "Pipeline completed successfully. No further stages will run."
